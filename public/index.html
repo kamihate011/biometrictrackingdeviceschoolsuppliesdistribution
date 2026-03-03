@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Biometric Distribution System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Biometric Supply System</p>
+          <h1>Student Distribution Console</h1>
+          <p class="hero-sub">
+            Scan fingerprint, capture demographic profile, assign supplies, and confirm distribution.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button class="secondary" id="adminToggleBtn" type="button">Enable Admin Mode</button>
+          <div class="connection-pill" id="connectionStatus">Connecting...</div>
+        </div>
+      </header>
+
+      <section class="layout-grid">
+        <article class="panel" id="scanPanel">
+          <h2>Fingerprint Session</h2>
+          <p class="muted">Waiting for fingerprint scan from ESP32...</p>
+        </article>
+
+        <article class="panel">
+          <h2>Registered Students</h2>
+          <div id="tableWrapper" class="table-wrapper"></div>
+        </article>
+      </section>
+
+      <section class="panel hidden" id="adminPanel">
+        <h2>Admin Mode</h2>
+        <p class="muted">Create and edit student records without fingerprint scan.</p>
+        <div id="adminFormContainer"></div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

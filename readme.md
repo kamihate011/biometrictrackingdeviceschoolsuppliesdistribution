@@ -1,0 +1,120 @@
+# Biometric Distribution System (ESP32 + MongoDB)
+
+Database-driven web application for student supply distribution with fingerprint verification.
+
+## Features
+- Stores student records in MongoDB:
+  - `LRN`
+  - `fullName`
+  - `gradeLevel`
+  - `section`
+  - `strand`
+  - `assignedSupplies`
+  - `distributionStatus`
+- ESP32 posts matched `fingerprintId` after scan.
+- Web app auto-displays matched student profile.
+- Operator confirms distribution using one button.
+- Distribution status updates in real time via Socket.IO.
+- Mobile/tablet-friendly interface.
+
+## Project Structure
+- `src/server.js` - Express API + Socket.IO server
+- `src/models/Student.js` - MongoDB student schema
+- `src/routes/students.js` - CRUD + scan + distribution endpoints
+- `public/` - Front-end UI
+- `firmware/esp32_biometric_client.ino` - ESP32 code for R307S + OLED + RTC
+
+## Setup
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+2. Copy env file:
+   ```bash
+   copy .env.example .env
+   ```
+3. Update `.env` with your MongoDB URI.
+   - Add admin password for Admin Mode:
+   ```env
+   ADMIN_PASSWORD=your_secure_password
+   ```
+4. (Optional) Seed sample records:
+   ```bash
+   npm run seed
+   ```
+5. Run server:
+   ```bash
+   npm run dev
+   ```
+6. Open from phone/tablet in same network:
+   - `http://<PC_IP>:3000`
+
+## API Endpoints
+- `GET /api/health`
+- `GET /api/students`
+- `POST /api/students`
+- `POST /api/students/admin/verify` body:
+  ```json
+  { "password": "your_admin_password" }
+  ```
+- `POST /api/students/scan` body:
+  ```json
+  { "fingerprintId": 1 }
+  ```
+- `PUT /api/students/:id/distribution` body:
+  ```json
+  { "status": "DISTRIBUTED" }
+  ```
+- `PUT /api/students/:id` (admin password required via `x-admin-password` header)
+- `DELETE /api/students/:id` (admin password required via `x-admin-password` header)
+
+## Sample Student Payload
+```json
+{
+  "lrn": "100000000003",
+  "fullName": "Jane Garcia",
+  "gradeLevel": "Grade 11",
+  "section": "STEM-B",
+  "strand": "STEM",
+  "assignedSupplies": ["Notebook", "Ballpen", "Pad Paper"],
+  "distributionStatus": "PENDING",
+  "fingerprintId": 3
+}
+```
+
+## Hardware Wiring (ESP32 30-pin board)
+Use common ground for all devices.
+
+### R307S Fingerprint Module
+- `VCC` -> `5V`
+- `GND` -> `GND`
+- `TX` -> `GPIO16` (ESP32 RX2)
+- `RX` -> `GPIO17` (ESP32 TX2)
+
+### 0.96 OLED (SSD1306 I2C)
+- `VCC` -> `3.3V`
+- `GND` -> `GND`
+- `SCL` -> `GPIO22`
+- `SDA` -> `GPIO21`
+
+### DS1307 RTC (I2C shared with OLED)
+- `VCC` -> `5V`
+- `GND` -> `GND`
+- `SCL` -> `GPIO22`
+- `SDA` -> `GPIO21`
+
+## ESP32 Notes
+- Open `firmware/esp32_biometric_client.ino`.
+- Set:
+  - `WIFI_SSID`
+  - `WIFI_PASSWORD`
+  - `SERVER_URL` (example: `http://192.168.1.10:3000/api/students/scan`)
+- Ensure the `fingerprintId` enrolled in R307S matches `fingerprintId` in MongoDB.
+
+## Deployment/Usage Flow
+1. Student places finger on R307S.
+2. ESP32 sends `fingerprintId` to `/api/students/scan`.
+3. Server finds student and emits `scan:matched`.
+4. Tablet/phone UI immediately shows student record.
+5. Operator taps `Confirm Distribution`.
+6. Server updates MongoDB status and emits realtime update.

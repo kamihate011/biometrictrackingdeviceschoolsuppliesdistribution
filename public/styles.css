@@ -1,0 +1,55 @@
+:root {
+  --bg: #f4efe7;
+  --card: #fffdf9;
+  --text: #1f2a36;
+  --muted: #5b6774;
+  --accent: #006d77;
+  --accent-2: #1d3557;
+  --warning: #b26b00;
+  --ok: #0f8a4f;
+  --border: #ddd5ca;
+  --danger: #b43732;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  background: radial-gradient(circle at 10% 5%, #ffe0b3 0, transparent 40%),
+              radial-gradient(circle at 90% 0%, #c8e8ea 0, transparent 35%),
+              var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app { max-width: 1180px; margin: 0 auto; padding: 18px; }
+
+.hero { display: flex; justify-content: space-between; margin-bottom: 14px; }
+
+.eyebrow { text-transform: uppercase; letter-spacing: 0.08em; font-weight: 800; font-size: 0.72rem; color: var(--accent-2); margin: 0; }
+
+.connection-pill { padding: 8px 12px; border-radius: 999px; font-weight: 700; background: #d9efef; color: var(--accent-2); border: 1px solid #abd7da; font-size: 0.8rem; }
+
+.layout-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 14px; }
+
+.panel { padding: 18px; background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 8px 28px rgb(31 42 54 / 8%); margin-bottom: 14px; }
+
+.scan-banner { border: 1px dashed #b8b0a5; border-radius: 14px; padding: 12px; margin-bottom: 12px; background: #f8f3ec; }
+
+.status { padding: 4px 8px; border-radius: 999px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; }
+.status.pending { background: #fff2df; color: var(--warning); }
+.status.distributed { background: #ddf8e8; color: var(--ok); }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; border-bottom: 1px solid var(--border); padding: 10px 8px; font-size: 0.85rem; }
+
+button { border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+button.primary { background: var(--accent); color: white; }
+button.secondary { background: #d2dbe0; color: var(--text); }
+button.danger { background: #f9d7d5; color: var(--danger); }
+button.small { padding: 5px 8px; font-size: 0.7rem; }
+
+.hidden { display: none; }
+
+@media (max-width: 768px) { .layout-grid { grid-template-columns: 1fr; } }
