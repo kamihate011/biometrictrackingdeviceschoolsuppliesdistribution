@@ -147,6 +147,7 @@ If you prefer a serverless data pipe to a Netlify-hosted dashboard, use `firmwar
 ### Notes
 - The R307S usually sends matched template IDs, not full fingerprint images.
 - For multi-device template sync, exporting/importing template data is required and is more advanced than scan logging.
+- The Firebase sketch includes OLED status output (SSD1306 over I2C on GPIO21/22) and buzzer feedback (GPIO25 by default). Adjust pins if your board wiring differs.
 
 ## Deployment/Usage Flow
 1. Student places finger on R307S.
