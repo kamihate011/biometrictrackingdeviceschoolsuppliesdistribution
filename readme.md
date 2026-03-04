@@ -154,6 +154,12 @@ If you prefer a serverless data pipe to a Netlify-hosted dashboard, use `firmwar
 - Fingerprint initialization now auto-tries common baud rates and both RX/TX wiring directions to recover from module defaults and swapped wires.
 
 
+### Arduino compile troubleshooting
+- If you see `a function-definition is not allowed here before '{' token`, your sketch file is usually malformed (missing `}` or duplicated paste blocks). Re-copy `firmware/esp32_r307s_firebase_client.ino` from the repository and replace the entire `.ino` content.
+- The `Multiple libraries were found for "SD.h"` message is informational; it is not the root error for this sketch.
+
+### Netlify deploy note
+If Netlify shows messages like "All files already uploaded" and "No redirect/header/function rules processed," that simply means no changed artifacts or Netlify-specific rule files were included in that deploy.
 ### Netlify deploy note
 If Netlify shows messages like "All files already uploaded" and "No redirect/header/function rules processed," that simply means no changed artifacts or Netlify-specific rule files were included in that deploy.
 - The R307S usually sends matched template IDs, not full fingerprint images.

@@ -146,6 +146,28 @@ void beepNoMatch() {
   buzz(130, 0);
 }
 
+
+void printWiringDiagnostics() {
+  Serial.println("--- Wiring diagnostics ---");
+  Serial.print("R307S RX/TX candidates: ");
+  Serial.print(FP_RX_PIN_A);
+  Serial.print("/");
+  Serial.print(FP_TX_PIN_A);
+  Serial.print(" and ");
+  Serial.print(FP_RX_PIN_B);
+  Serial.print("/");
+  Serial.println(FP_TX_PIN_B);
+  Serial.print("OLED SDA/SCL: ");
+  Serial.print(OLED_SDA_PIN);
+  Serial.print("/");
+  Serial.println(OLED_SCL_PIN);
+  Serial.print("Buzzer pin: ");
+  Serial.print(BUZZER_PIN);
+  Serial.print(" enabled=");
+  Serial.println(BUZZER_ENABLED ? "true" : "false");
+  Serial.println("--------------------------");
+}
+
 void connectWiFi() {
   if (WiFi.status() == WL_CONNECTED) return;
 
@@ -348,6 +370,8 @@ bool uploadLog(int userId) {
 void setup() {
   Serial.begin(115200);
   delay(300);
+
+  printWiringDiagnostics();
 
   pinMode(BUZZER_PIN, OUTPUT);
   if (BUZZER_ENABLED) buzzerOff();
