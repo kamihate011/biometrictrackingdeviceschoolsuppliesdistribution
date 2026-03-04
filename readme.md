@@ -145,6 +145,17 @@ If you prefer a serverless data pipe to a Netlify-hosted dashboard, use `firmwar
 ```
 
 ### Notes
+- **Power safety:** Do not power the R307S from an ESP32 GPIO pin. Use a stable 5V rail and common GND. If your ESP32 gets hot, disconnect power and re-check wiring immediately.
+- **Buzzer wiring:** This sketch defaults buzzer output to disabled (`BUZZER_ENABLED=false`). Enable only after confirming buzzer module type and wiring; use a transistor driver for higher-current buzzers.
+- The R307S usually sends matched template IDs, not full fingerprint images.
+- For multi-device template sync, exporting/importing template data is required and is more advanced than scan logging.
+- The Firebase sketch includes OLED status output (SSD1306 over I2C on GPIO21/22) and buzzer feedback (GPIO25 by default). Adjust pins if your board wiring differs.
+- Buzzer output uses simple digital pulse mode for broad compatibility (active buzzer modules). If your buzzer is active-low, set `BUZZER_ACTIVE_HIGH` to `false` in the sketch.
+- Fingerprint initialization now auto-tries common baud rates and both RX/TX wiring directions to recover from module defaults and swapped wires.
+
+
+### Netlify deploy note
+If Netlify shows messages like "All files already uploaded" and "No redirect/header/function rules processed," that simply means no changed artifacts or Netlify-specific rule files were included in that deploy.
 - The R307S usually sends matched template IDs, not full fingerprint images.
 - For multi-device template sync, exporting/importing template data is required and is more advanced than scan logging.
 - The Firebase sketch includes OLED status output (SSD1306 over I2C on GPIO21/22) and buzzer feedback (GPIO25 by default). Adjust pins if your board wiring differs.
