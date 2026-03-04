@@ -6,10 +6,6 @@
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_Fingerprint.h>
 
-#if __has_include(<esp_arduino_version.h>)
-#include <esp_arduino_version.h>
-#endif
-
 // Firebase ESP Client dependencies
 #include <Firebase_ESP_Client.h>
 #include <addons/TokenHelper.h>
@@ -39,47 +35,20 @@ const int OLED_SDA_PIN = 21;
 const int OLED_SCL_PIN = 22;
 const int BUZZER_PIN = 25;
 const int BUZZER_CHANNEL = 0;
-bool oledReady = false;
 
 FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
 bool firebaseReady = false;
-bool fingerprintReady = false;
 bool fingerLatched = false;
 unsigned long lastUploadMs = 0;
-unsigned long lastFingerprintRetryMs = 0;
 const unsigned long uploadCooldownMs = 3000;
-const unsigned long fingerprintRetryIntervalMs = 8000;
-
-void initBuzzer() {
-#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
-  ledcAttach(BUZZER_PIN, 2000, 8);
-  ledcWriteTone(BUZZER_PIN, 0);
-#else
-  ledcSetup(BUZZER_CHANNEL, 2000, 8);
-  ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
-  ledcWriteTone(BUZZER_CHANNEL, 0);
-#endif
-}
-
-void buzzerOff() {
-#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
-  ledcWriteTone(BUZZER_PIN, 0);
-#else
-  ledcWriteTone(BUZZER_CHANNEL, 0);
-#endif
-}
 
 void beep(int frequency, int durationMs, int pauseMs = 0) {
-#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
-  ledcWriteTone(BUZZER_PIN, frequency);
-#else
   ledcWriteTone(BUZZER_CHANNEL, frequency);
-#endif
   delay(durationMs);
-  buzzerOff();
+  ledcWriteTone(BUZZER_CHANNEL, 0);
   if (pauseMs > 0) delay(pauseMs);
 }
 
@@ -98,8 +67,6 @@ void beepNoMatch() {
 }
 
 void drawStatus(const String& title, const String& line1 = "", const String& line2 = "") {
-  if (!oledReady) return;
-
   oled.clearDisplay();
   oled.setTextSize(1);
   oled.setTextColor(SSD1306_WHITE);
@@ -131,7 +98,6 @@ void connectWiFi() {
 }
 
 bool initFingerprintSensor() {
-  fpSerial.end();
   fpSerial.begin(57600, SERIAL_8N1, FP_RX_PIN, FP_TX_PIN);
   delay(400);
 
@@ -139,7 +105,6 @@ bool initFingerprintSensor() {
     Serial.println("Fingerprint sensor not detected. Check power/wiring.");
     drawStatus("Fingerprint", "Sensor not found");
     beepError();
-    fingerprintReady = false;
     return false;
   }
 
@@ -148,7 +113,6 @@ bool initFingerprintSensor() {
   Serial.println(finger.templateCount);
   drawStatus("Fingerprint", "Ready", "Templates: " + String(finger.templateCount));
   beep(1400, 80);
-  fingerprintReady = true;
   return true;
 }
 
@@ -184,8 +148,6 @@ void initFirebase() {
 }
 
 int scanFingerprint() {
-  if (!fingerprintReady) return -1;
-
   uint8_t p = finger.getImage();
   if (p == FINGERPRINT_NOFINGER) return 0;
   if (p != FINGERPRINT_OK) return -1;
@@ -207,6 +169,7 @@ bool uploadLog(int userId) {
   json.set("user_id", userId);
   json.set("timestamp/.sv", "timestamp");
 
+  // Push to /logs and let Firebase create a unique key
   if (!Firebase.RTDB.pushJSON(&fbdo, "/logs", &json)) {
     Serial.print("RTDB push failed: ");
     Serial.println(fbdo.errorReason());
@@ -222,19 +185,23 @@ void setup() {
   Serial.begin(115200);
   delay(300);
 
-  pinMode(BUZZER_PIN, OUTPUT);
-  initBuzzer();
-
   Wire.begin(OLED_SDA_PIN, OLED_SCL_PIN);
-  oledReady = oled.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  if (!oledReady) {
+  ledcAttachPin(BUZZER_PIN, BUZZER_CHANNEL);
+  ledcWriteTone(BUZZER_CHANNEL, 0);
+
+  if (!oled.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
     Serial.println("OLED init failed");
   } else {
     drawStatus("Boot", "Initializing...");
   }
 
   connectWiFi();
-  initFingerprintSensor();
+
+  if (!initFingerprintSensor()) {
+    // Keep running to allow hot-fix/retry while powered
+    Serial.println("Fingerprint init failed; device will keep retrying scans.");
+  }
+
   initFirebase();
   drawStatus("System Ready", "Place finger");
 }
@@ -244,19 +211,9 @@ void loop() {
     connectWiFi();
   }
 
-  if (!firebaseReady || !Firebase.ready()) {
+  if (!Firebase.ready()) {
     firebaseReady = false;
     initFirebase();
-  }
-
-  if (!fingerprintReady) {
-    unsigned long now = millis();
-    if (now - lastFingerprintRetryMs >= fingerprintRetryIntervalMs) {
-      lastFingerprintRetryMs = now;
-      initFingerprintSensor();
-    }
-    delay(100);
-    return;
   }
 
   int result = scanFingerprint();
